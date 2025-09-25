@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import type { Character } from "../models/CharacterModel";
-import characterService from "../services/CharactersService";
-import { BASE_URL } from "../services/CharactersService";
+import { BASE_URL, getCharacterById, getCharacters } from "../services/CharactersService";
+import CharacterDetail from "./CharacterDetail";
 
 function CharacterList() {
-    const [characters, setCharacters] = useState<Character[] | Character>();
+    const [characters, setCharacters] = useState<Character[] | Character | undefined>(undefined);
+    const [query, setQuery] = useState<string | undefined>("");
+    const [filters, setFilters] = useState<string[] | undefined>(undefined);
+    const [detail, setDetail] = useState<Character | undefined>(undefined);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -12,7 +15,7 @@ function CharacterList() {
         const fetchCharacters = async () => {
             setLoading(true);
             try {
-            const response = await characterService(BASE_URL);
+            const response = await getCharacters(BASE_URL);
                 setCharacters(response?.results);
             } catch (e: any) {
                 setError(e.message || "An unexpected error occurred.");
@@ -21,8 +24,73 @@ function CharacterList() {
         }
         };
 
+        
+
         fetchCharacters();
     }, []);
+
+    async function searchCharacters() {
+        setLoading(true)
+
+        const queryURL = `?name=${query}`;
+        const response = await getCharacters(BASE_URL.concat(queryURL));
+        console.log(BASE_URL.concat(queryURL))
+
+        if (response?.results) {
+            setCharacters(response.results);
+        } else {
+            setCharacters([])
+            setError("No characters found.");
+        }
+        setLoading(false)
+    }
+
+    async function applyFilters() {
+        setLoading(true);
+        let filterURL = "";
+
+        if (query !== "") {
+        filterURL += `?name=${query}`;
+        }
+
+        if (filters && filters.length > 0) {
+            if (filters[0]) {
+                filterURL += filterURL.length > 0 ? `&status=${filters[0]}` : `?status=${filters[0]}`;
+            }
+            if (filters[1]) {
+                filterURL += filterURL.length > 0 ? `&gender=${filters[1]}` : `?gender=${filters[1]}`;
+            }
+            if (filters[2]) {
+                filterURL += filterURL.length > 0 ? `&species=${filters[2]}` : `?species=${filters[2]}`;
+            }
+        }
+
+        try {
+            const filterApi = BASE_URL + filterURL;
+            const response = await getCharacters(filterApi);
+
+            if (response?.results) {
+                setCharacters(response.results);
+            } else {
+                setCharacters([]);
+                setError("No characters found.");
+            }
+        } catch (error: any) {
+            setError(error.message || "An error occurred while fetching characters.");
+        } finally {
+            setLoading(false);
+        }
+    }
+    async function setCharacterDetails(id: number) {
+        try {
+            const character = await getCharacterById(id);
+            if (character) {
+                setDetail(character);
+            }
+        } catch (error: any) {
+            setError(error.message || "Failed to fetch character details.");
+        }
+    }
 
     if (loading) {
         return <div>Loading characters...</div>;
@@ -33,6 +101,57 @@ function CharacterList() {
     }
 
     return (
+        <>
+        <div style={{display: "flex", margin: "20px 10px", justifyContent: "space-between"}}>
+            <div style={{display: "flex"}}>
+                <input 
+                    type="text" 
+                    placeholder="Search by name" 
+                    onChange={(ev) => setQuery(ev.target.value)}
+                    style={{padding: "8px 16px"}}></input>
+                <button type="submit" onClick={() => {searchCharacters(), setQuery("")}}>🔎</button>
+            </div>
+            <div>
+                <form id="filters" style={{display: "flex", alignContent:"center", gap: "10px"}}>
+                    <label htmlFor="status" style={{position: "relative", top: "10px"}}>Status</label>
+                    <select id="status" value={filters && filters[0] ? filters[0] : ""} onChange={(ev) => setFilters(prevFilters => {
+                        const newFilters = prevFilters ? [...prevFilters] : [];
+                        newFilters[0] = ev.target.value;
+                        return newFilters;
+                    })}>
+                        <option value="">All</option>
+                        <option value="alive">Alive</option>
+                        <option value="dead">Dead</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                    <label htmlFor="gender" style={{position: "relative", top: "10px"}}>Gender</label>
+                    <select id="gender" value={filters && filters[1] ? filters[1] : ""} onChange={(ev) => setFilters(prevFilters => {
+                        const newFilters = prevFilters ? [...prevFilters] : [];
+                        newFilters[1] = ev.target.value;
+                        return newFilters;
+                    })}>
+                        <option value="">All</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="genderless">Genderless</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                    <label htmlFor="species" style={{position: "relative", top: "10px"}}>Species</label>
+                    <select id="species" value={filters && filters[2] ? filters[2] : ""} onChange={(ev) => setFilters(prevFilters => {
+                        const newFilters = prevFilters ? [...prevFilters] : [];
+                        newFilters[2] = ev.target.value;
+                        return newFilters;
+                    })}>
+                        <option value="">All</option>
+                        <option value="human">Human</option>
+                        <option value="alien">Alien</option>
+                        <option value="robot">Robot</option>
+                        <option value="humanoid">Humanoid</option>
+                    </select>
+                    <button type="submit" onClick={() => applyFilters()}>Filter</button>
+                </form>
+            </div>
+        </div>
         <div style={
             {
                 display: "grid", 
@@ -45,7 +164,12 @@ function CharacterList() {
             }}>
             {characters && Array.isArray(characters) && characters.map((character: Character) => (
                 <div key={character.id} style={{ padding: "5px", display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <img src={character.image} alt={character.name} style={{ maxWidth: "100%", height: "auto" }} />
+                    <img 
+                        className="character-img"
+                        src={character.image} 
+                        alt={character.name} 
+                        style={{ maxWidth: "100%", height: "auto"}} 
+                        onClick={() => setCharacterDetails(character.id)}/>
                     <h3 style={{ marginBottom: "10px"}}>{character.name}</h3>
                     <p style={{fontSize: "12px", textAlign: 'center'}}>
                         <span>
@@ -54,10 +178,30 @@ function CharacterList() {
                             {character.status === "unknown" && "❔ Unknown"}
                         </span> | {character.species}
                     </p>
-                    <p style={{fontSize: "10px", textAlign: 'center'}}>📍 Location: {character.location.name}</p>
                 </div>
             ))}
         </div>
+        {detail && (
+        <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)', 
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000}}>
+                <CharacterDetail character={detail} />
+                <button 
+                    style={{ position: 'absolute', top: '20px', right: '30px'}}
+                    onClick={() => setDetail(undefined)}
+                    >
+                    Close</button>
+        </div>
+        )}
+        </>
     )
 }
 
