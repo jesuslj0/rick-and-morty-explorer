@@ -93,8 +93,8 @@ button:focus-visible {
 
 .character-image {
   flex-shrink: 0;
-  width: 160px;
-  height: 160px;
+  width: 180px;
+  height: 180px;
   border-radius: 1rem;
   object-fit: cover;
   border: 2px solid #3a3a4f;
@@ -130,7 +130,7 @@ button:focus-visible {
 
 .episodes-container {
   overflow: auto;
-  max-height: 200px;
+  max-height: 150px;
   border: 0px solid #ccc;
   padding: 10px;
 }
@@ -151,4 +151,17 @@ button:focus-visible {
 
 .episode-item a:hover {
   text-decoration: underline;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.pagination > .firstPage {
+  background-color: #1a1a1a00;
+}
+
+.pagination > ul > li > button.selected {
+  background-color:#535bf2;
 }

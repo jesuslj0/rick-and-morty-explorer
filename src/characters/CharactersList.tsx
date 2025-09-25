@@ -3,11 +3,17 @@ import type { Character } from "../models/CharacterModel";
 import { BASE_URL, getCharacterById, getCharacters } from "../services/CharactersService";
 import CharacterDetail from "./CharacterDetail";
 
+interface Page {
+    number: number,
+    isSelected: boolean,
+}
+
 function CharacterList() {
     const [characters, setCharacters] = useState<Character[] | Character | undefined>(undefined);
     const [query, setQuery] = useState<string | undefined>("");
     const [filters, setFilters] = useState<string[] | undefined>(undefined);
     const [detail, setDetail] = useState<Character | undefined>(undefined);
+    const [pages, setPages] = useState<Page[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +30,14 @@ function CharacterList() {
         }
         };
 
-        
+        const initialPages = [];
+        for (let i = 1; i <= 9; i++) {
+            initialPages.push({
+                number: i,
+                isSelected: i === 1,
+            });
+        }
+        setPages(initialPages);
 
         fetchCharacters();
     }, []);
@@ -81,6 +94,7 @@ function CharacterList() {
             setLoading(false);
         }
     }
+
     async function setCharacterDetails(id: number) {
         try {
             const character = await getCharacterById(id);
@@ -90,6 +104,68 @@ function CharacterList() {
         } catch (error: any) {
             setError(error.message || "Failed to fetch character details.");
         }
+    }
+
+    async function loadPage(page: number) {
+            setLoading(true);
+            let pageFilterURL = "";
+
+            if (query !== "") {
+                pageFilterURL += `?name=${query}`;
+            }
+
+            if (filters && filters.length > 0) {
+                if (filters[0]) {
+                    pageFilterURL += pageFilterURL.length > 0 ? `&status=${filters[0]}` : `?status=${filters[0]}`;
+                }
+                if (filters[1]) {
+                    pageFilterURL += pageFilterURL.length > 0 ? `&gender=${filters[1]}` : `?gender=${filters[1]}`;
+                }
+                if (filters[2]) {
+                    pageFilterURL += pageFilterURL.length > 0 ? `&species=${filters[2]}` : `?species=${filters[2]}`;
+                }
+            }
+
+            pageFilterURL += pageFilterURL.length > 0 ? `&page=${page}` : `?page=${page}`;
+
+            try {
+                const pageApi = BASE_URL + pageFilterURL;
+                const response = await getCharacters(pageApi);
+
+                if (response?.results) {
+                    setCharacters(response.results);
+                } else {
+                    setCharacters([]);
+                }
+            } catch (error: any) {
+                setError(error.message || "An error occurred while fetching characters.");
+            } finally {
+                setLoading(false);
+            }
+
+            pages?.map((p) => ({
+                 number: p.number++,
+                 isSelected: false,
+            }))
+
+            const updatedPages = pages?.map((p) => ({
+                ...p,
+                isSelected: p.number === page,
+            }));
+
+
+            setPages(updatedPages || null);
+    }
+
+    async function setFirstPages() {
+        const initialPages = [];
+        for (let i = 1; i <= 9; i++) {
+            initialPages.push({
+                number: i,
+                isSelected: false,
+            });
+        }
+        setPages(initialPages);
     }
 
     if (loading) {
@@ -201,6 +277,16 @@ function CharacterList() {
                     Close</button>
         </div>
         )}
+        <div className="pagination">
+            <button className="firstPage" onClick={() => setFirstPages()}>◀️</button>
+            <ul style={{ display: "flex", flexDirection: "row", gap: "10px", listStyle: "none", justifyContent: "center", padding: "0px"}}>
+                {pages && pages.map((page) => (
+                    <li key={page.number}>
+                        <button onClick={() => loadPage(page.number)} className={page.isSelected ? "selected" : ""}>{page.number}</button>
+                    </li>
+                ))}
+            </ul>
+        </div>
         </>
     )
 }
