@@ -19,4 +19,5 @@ export interface  Character {
     created: string | undefined,
     
     map: () => any //Evita fallo
+    filter: () => any 
 }

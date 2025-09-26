@@ -38,3 +38,45 @@ export async function getCharacterById(id: number): Promise<Character | undefine
         return undefined;
     }
 }
+
+export class FavoriteCharactersManager {
+    private static readonly STORAGE_KEY = "favoriteCharacters";
+
+    static getFavoriteCharacters(): Character[] {
+        try {
+            const storedCharacters = localStorage.getItem(FavoriteCharactersManager.STORAGE_KEY);
+            return storedCharacters ? JSON.parse(storedCharacters) : [];
+        } catch (error) {
+            console.error("Error getting favorite characters from localStorage:", error);
+            return [];
+        }
+    }
+
+    static addFavoriteCharacter(character: Character): void {
+        const characters = FavoriteCharactersManager.getFavoriteCharacters();
+        characters.push(character);
+        try {
+            localStorage.setItem(FavoriteCharactersManager.STORAGE_KEY, JSON.stringify(characters));
+        } catch (error) {
+            console.error("Error adding favorite character to localStorage:", error);
+        }
+    }
+
+    static removeFavoriteCharacter(characterId: number): void {
+        let characters = FavoriteCharactersManager.getFavoriteCharacters();
+        characters = characters.filter(char => char.id !== characterId);
+        try {
+            localStorage.setItem(FavoriteCharactersManager.STORAGE_KEY, JSON.stringify(characters));
+        } catch (error) {
+            console.error("Error removing favorite character from localStorage:", error);
+        }
+    }
+
+    static clearFavoriteCharacters(): void {
+        try {
+            localStorage.removeItem(FavoriteCharactersManager.STORAGE_KEY);
+        } catch (error) {
+            console.error("Error clearing favorite characters from localStorage:", error);
+        }
+    }
+}

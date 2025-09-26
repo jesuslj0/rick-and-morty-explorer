@@ -67,6 +67,22 @@ button:focus-visible {
   }
 }
 
+#filters > select {
+  padding-left: 10px;
+}
+
+@media (max-width: 768px) {
+  .filters-container {
+    display: flex;
+    flex-direction: column;
+  } 
+
+  #filters {
+    max-height: 50px;
+  }
+  
+}
+
 .character-img:hover {
   transform: scale(1.05);
   transition: transform 0.3s ease-in-out;
