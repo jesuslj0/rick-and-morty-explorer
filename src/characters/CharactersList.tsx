@@ -233,7 +233,7 @@ function CharacterList() {
                 </div>
                 <div>
                     <form id="filters" style={{ display: "flex", alignContent: "center", gap: "10px" }}>
-                        <label style={{ paddingTop: '10px' }}>
+                        <label>
                             Show Favorites Only
                             <input
                                 type="checkbox"
@@ -241,7 +241,7 @@ function CharacterList() {
                                 onChange={(e) => setShowFavoritesOnly(e.target.checked)}
                             />
                         </label>
-                        <label htmlFor="status" style={{ position: "relative", top: "10px" }}>Status</label>
+                        <label htmlFor="status">Status</label>
                         <select id="status" value={filters && filters[0] ? filters[0] : ""} onChange={(ev) => {
                             const newFilters = filters ? [...filters] : [];
                             newFilters[0] = ev.target.value;
@@ -252,7 +252,7 @@ function CharacterList() {
                             <option value="dead">Dead</option>
                             <option value="unknown">Unknown</option>
                         </select>
-                        <label htmlFor="gender" style={{ position: "relative", top: "10px" }}>Gender</label>
+                        <label htmlFor="gender">Gender</label>
                         <select id="gender" value={filters && filters[1] ? filters[1] : ""} onChange={(ev) => {
                             const newFilters = filters ? [...filters] : [];
                             newFilters[1] = ev.target.value;
@@ -263,7 +263,8 @@ function CharacterList() {
                             <option value="female">Female</option>
                             <option value="genderless">Genderless</option>
                             <option value="unknown">Unknown</option>
-                        </select>
+                        </select> 
+                        <label htmlFor="species">Species</label>
                         <select id="species" value={filters && filters[2] ? filters[2] : ""} onChange={(ev) => {
                             const newFilters = filters ? [...filters] : [];
                             newFilters[2] = ev.target.value;
@@ -346,10 +347,15 @@ function CharacterList() {
             )}
             <div className="pagination">
                 <button className="firstPage" onClick={() => setFirstPages()}>◀️</button>
-                <ul style={{ display: "flex", flexDirection: "row", gap: "10px", listStyle: "none", justifyContent: "center", padding: "0px" }}>
-                    {pages && pages.map((page) => (
+                <ul className="pagination-list">
+                    {pages?.map((page) => (
                         <li key={page.number}>
-                            <button onClick={() => loadPage(page.number)} className={page.isSelected ? "selected" : ""}>{page.number}</button>
+                            <button
+                                onClick={() => loadPage(page.number)}
+                                className={page.isSelected ? "selected" : ""}
+                            >
+                                {page.number}
+                            </button>
                         </li>
                     ))}
                 </ul>

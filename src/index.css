@@ -54,6 +54,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -67,21 +68,55 @@ button:focus-visible {
   }
 }
 
-#filters > select {
-  padding-left: 10px;
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 10px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+
+.search-box input {
+  padding: 8px 16px;
+}
+
+#filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
   .filters-container {
-    display: flex;
     flex-direction: column;
-  } 
+    align-items: stretch;
+  }
 
   #filters {
-    max-height: 50px;
+    flex-direction: column;
+    align-items: stretch;
   }
-  
+
+  .search-box {
+    width: 100%;
+  }
+
+  .search-box input {
+    flex: 1;
+  }
+
+  #filters select,
+  #filters button {
+    width: 100%;
+  }
 }
+
 
 .character-img:hover {
   transform: scale(1.05);
@@ -171,13 +206,33 @@ button:focus-visible {
 
 .pagination {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.pagination .firstPage {
+  padding: 6px 12px;
+}
+
+.pagination-list {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
   justify-content: center;
 }
 
-.pagination > .firstPage {
-  background-color: #1a1a1a00;
+.pagination-list li button {
+  padding: 6px 12px;
 }
 
-.pagination > ul > li > button.selected {
-  background-color:#535bf2;
+.pagination-list li .selected {
+  font-weight: bold;
+  text-decoration: underline;
 }
